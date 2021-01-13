@@ -45,7 +45,7 @@ public class FileManager extends AbstractVerticle {
                                             System.out.println("Moved TO");
                                             replyFile = this.moveTo(replyFile, this.outputDir);
                                             if (replyFile != null){
-                                                System.out.println(reply.result().body());
+                                                System.out.println(replyFile.toString());
                                             }
                                         }
                                     });
@@ -64,7 +64,7 @@ public class FileManager extends AbstractVerticle {
     private File moveTo(File from, String to) {
         try {
             to += from.getName();
-            Files.move(from.toPath(), Paths.get(to));
+            Files.move(from.toPath(), Paths.get(to), StandardCopyOption.REPLACE_EXISTING);
             return new File(to);
         } catch (IOException e) {
             e.printStackTrace();
