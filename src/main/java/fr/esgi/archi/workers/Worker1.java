@@ -24,7 +24,6 @@ public class Worker1 extends AbstractVerticle {
                     }
                     File f = (File) message.body();
                     System.out.println("Worker 1 - " + f.toString());
-//                    System.out.println("Worker 1 - " + message.body());
 
                     message.reply(f);
                 });

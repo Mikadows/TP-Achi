@@ -1,20 +1,14 @@
 package fr.esgi.archi;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.List;
+
 
 /**
- * TODO :
  * - Distribution des fichiers sur workers génériques
  * - Une fois le fichier traiter l'envoie dans un autre répertoire
  * - Gestion du ACK (du retour du worker)
@@ -24,9 +18,9 @@ import java.util.List;
  * extraire dans le directory courant
  */
 public class FileManager extends AbstractVerticle {
-    private File inputDir = new File("input/");
-    private String pendingDir = "pending/";
-    private String outputDir = "output/";
+    private final File inputDir = new File("input/");
+    private final String pendingDir = "pending/";
+    private final String outputDir = "output/";
 
 
     @Override

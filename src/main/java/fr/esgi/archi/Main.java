@@ -17,5 +17,3 @@ public class Main {
         vertx.deployVerticle(new Worker2());
     }
 }
-
-//video 2:26
