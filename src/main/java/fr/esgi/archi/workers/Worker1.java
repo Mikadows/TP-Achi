@@ -6,7 +6,6 @@ import io.vertx.core.eventbus.EventBus;
 import java.io.File;
 
 /**
- * TODO :
  * - Thread.sleep
  * - renvoyer son ACK
  */
