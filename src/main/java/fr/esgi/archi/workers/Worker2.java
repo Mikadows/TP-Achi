@@ -12,6 +12,11 @@ public class Worker2 extends AbstractVerticle {
         EventBus eventBus = vertx.eventBus();
         eventBus.consumer("my-channel",
                 message -> {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     File f = (File) message.body();
                     System.out.println("Worker 2 - " + f.toString());
 //                    System.out.println("Worker 2 - " + message.body());
