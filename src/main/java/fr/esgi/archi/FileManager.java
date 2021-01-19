@@ -34,32 +34,22 @@ public class FileManager extends AbstractVerticle {
     public void start() {
         vertx.setPeriodic(2000,
                 aLong -> {
-                    //this.getFiles();
-
                     try {
                         List<File> files = Arrays.asList(this.getFiles());
+                        //partitioning if number of files sup than 15
                         if (files.size() > 15) {
                             int partitioningSize = 2;
                             List<List<File>> lists
                                     = Lists.partition(files, partitioningSize);
                             for (List<File> sublist : lists) {
-                                for (File f : files) {
-                                    if (f.isDirectory()) {
-                                        this.emptyDirectoryInput(f);
-                                    } else {
-                                        f = this.moveTo(f, this.pendingDir);
-                                        if (f != null) {
-                                            vertx.eventBus().request(
-                                                    "my-channel", f, reply -> {
-                                                        if (reply.succeeded()) {
-                                                            succesManagement(reply.result());
-                                                        } else {
-                                                            errorManagement(reply.cause());
-                                                        }
-                                                    });
-                                        }
-                                    }
+                                for (File f : sublist) {
+                                    fileTraitement(f);
                                 }
+                            }
+                         //if number of file inf than 15
+                        }else{
+                            for (File f : files) {
+                                fileTraitement(f);
                             }
                         }
 
@@ -70,14 +60,41 @@ public class FileManager extends AbstractVerticle {
         );
     }
 
-    private ArrayList<Comparable> subArray(List<File> A, int start, int end) {
-        ArrayList toReturn = new ArrayList();
-        for (int i = start; i <= end; i++) {
-            toReturn.add(A.get(i));
+    /***
+     * traitement of the file depending on its type.
+     * @param f
+     * @throws IOException
+     */
+    private void fileTraitement(File f) throws IOException {
+        if (f.isDirectory()) {
+            this.emptyDirectoryInput(f);
+        } else {
+            f = this.moveTo(f, this.pendingDir);
+            if (f != null) {
+                senfFileToWorker(f);
+            }
         }
-        return toReturn;
     }
 
+    /***
+     * Send the file to the worker
+     * @param f
+     */
+    private void senfFileToWorker(File f) {
+        vertx.eventBus().request(
+                "my-channel", f, reply -> {
+                    if (reply.succeeded()) {
+                        succesManagement(reply.result());
+                    } else {
+                        errorManagement(reply.cause());
+                    }
+                });
+    }
+
+    /***
+     * Traitement after a response in succes from a worker
+     * @param result
+     */
     private void succesManagement(Message<Object> result) {
         File replyFile = (File) result.body();
         replyFile = this.moveTo(replyFile, this.outputDir);
@@ -85,6 +102,10 @@ public class FileManager extends AbstractVerticle {
         System.out.println("Moved TO " + replyFile.toString());
     }
 
+    /***
+     * Traitement after a failing response from a worker
+     * @param cause
+     */
     private void errorManagement(Throwable cause) {
         File replyFile = new File(cause.getMessage());
         System.out.println(cause);
