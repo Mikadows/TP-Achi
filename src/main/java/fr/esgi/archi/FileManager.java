@@ -2,20 +2,16 @@ package fr.esgi.archi;
 
 import fr.esgi.archi.util.FileUtils;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.eventbus.Message;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import com.google.common.collect.Lists;
-
-import java.util.stream.Collectors;
 
 
 /**
@@ -26,10 +22,7 @@ import java.util.stream.Collectors;
  * extraire dans le directory courant
  */
 public class FileManager extends AbstractVerticle {
-    private final File inputDir = new File("input/");
-    private final String pendingDir = "pending/";
-    private final String outputDir = "output/";
-    private final String errorDir = "error/";
+
 
     @Override
     public void start() {
@@ -70,7 +63,7 @@ public class FileManager extends AbstractVerticle {
         if (f.isDirectory()) {
             this.emptyDirectoryInput(f);
         } else {
-            f = FileUtils.moveTo(f, this.pendingDir);
+            f = FileUtils.moveTo(f, FileManagerConfig.PENDING_DIR);
             if (f != null) {
                 senfFileToWorker(f);
             }
@@ -98,7 +91,7 @@ public class FileManager extends AbstractVerticle {
      */
     private void succesManagement(Message<Object> result) {
         File replyFile = (File) result.body();
-        replyFile = FileUtils.moveTo(replyFile, this.outputDir);
+        replyFile = FileUtils.moveTo(replyFile, FileManagerConfig.OUTPUT_DIR);
         assert replyFile != null;
         System.out.println("Moved TO " + replyFile.toString());
     }
@@ -110,7 +103,7 @@ public class FileManager extends AbstractVerticle {
     private void errorManagement(Throwable cause) {
         File replyFile = new File(cause.getMessage());
         System.out.println(cause);
-        replyFile = FileUtils.moveTo(replyFile, this.errorDir);
+        replyFile = FileUtils.moveTo(replyFile, FileManagerConfig.ERROR_DIR);
         assert replyFile != null;
         System.out.println("Moved TO " + replyFile.toString());
     }
@@ -126,10 +119,10 @@ public class FileManager extends AbstractVerticle {
                 Path sourcePath = file.toPath();
                 System.out.println(sourcePath);
                 System.out.println(f.toPath());
-                Files.move(new File(file.getPath()).toPath(), new File(this.inputDir + "/" + file.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.move(new File(file.getPath()).toPath(), new File(FileManagerConfig.INPUT_DIR_FILE + "/" + file.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else {
                 System.out.println("Test");
-                file.renameTo(new File(this.inputDir + "/" + file.getName()));
+                file.renameTo(new File(FileManagerConfig.INPUT_DIR_FILE + "/" + file.getName()));
             }
         }
         f.delete();
@@ -143,8 +136,7 @@ public class FileManager extends AbstractVerticle {
      * @return
      */
     private File[] getFiles() {
-        File[] files = this.inputDir.listFiles();
-        if (files == null) return files;
+        File[] files = FileManagerConfig.INPUT_DIR_FILE.listFiles();
         return files;
     }
 

@@ -6,10 +6,7 @@ import java.io.File;
 
 
 public class FileErrorManager extends AbstractVerticle {
-    private final File errorDir = new File("error/");
-    private static final String DEADQUEUE = "deadqueue/";
-    private final String pendingDir = "pending/";
-    private static final String OUTPUT = "output/";
+
 
     @Override
     public void start() {
@@ -18,14 +15,14 @@ public class FileErrorManager extends AbstractVerticle {
                     File[] files = this.getFiles();
                         for (File f : files) {
                             if (f != null) {
-                                f = FileUtils.moveTo(f, this.pendingDir);
+                                f = FileUtils.moveTo(f, FileManagerConfig.PENDING_DIR);
                                 File finalF = f;
                                 vertx.eventBus().request(
                                         "my-channel-error", f, reply -> {
                                             if (reply.succeeded()) {
-                                                FileUtils.moveTo(finalF, OUTPUT);
+                                                FileUtils.moveTo(finalF, FileManagerConfig.OUTPUT_DIR);
                                             } else {
-                                                FileUtils.moveTo(finalF, DEADQUEUE);
+                                                FileUtils.moveTo(finalF, FileManagerConfig.DEADQUEUE_DIR);
                                                 System.out.println("Failure... move to deadqueue");
                                             }
                                         });
@@ -42,7 +39,7 @@ public class FileErrorManager extends AbstractVerticle {
      * @return
      */
     private File[] getFiles() {
-        return this.errorDir.listFiles();
+        return FileManagerConfig.ERROR_DIR_FILE.listFiles();
     }
 
 }
