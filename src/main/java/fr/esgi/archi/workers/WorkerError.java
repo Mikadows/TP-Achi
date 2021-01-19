@@ -42,6 +42,7 @@ public class WorkerError extends AbstractVerticle{
             String data = myReader.nextLine();
             res = res + data;
         }
+        myReader.close();
         return res;
     }
 }

@@ -17,7 +17,7 @@ public class FileErrorManager extends AbstractVerticle {
     public void start() {
         vertx.setPeriodic(2000,
                 aLong -> {
-                    List<File> files = Arrays.asList(this.getFiles());
+                    File[] files = this.getFiles();
                         for (File f : files) {
                             if (f != null) {
                                 vertx.eventBus().request(
@@ -41,9 +41,7 @@ public class FileErrorManager extends AbstractVerticle {
      * @return
      */
     private File[] getFiles() {
-        File[] files = this.errorDir.listFiles();
-        if (files == null) return files;
-        return files;
+        return this.errorDir.listFiles();
     }
 
 }

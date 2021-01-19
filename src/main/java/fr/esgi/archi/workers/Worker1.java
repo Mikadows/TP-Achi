@@ -46,6 +46,7 @@ public class Worker1 extends AbstractVerticle {
             String data = myReader.nextLine();
             res = res + data;
         }
+        myReader.close();
         return res;
     }
 }
