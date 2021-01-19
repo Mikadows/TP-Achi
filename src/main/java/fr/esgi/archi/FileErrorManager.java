@@ -1,5 +1,6 @@
 package fr.esgi.archi;
 
+import fr.esgi.archi.util.FileUtils;
 import io.vertx.core.AbstractVerticle;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class FileErrorManager extends AbstractVerticle {
     private final File errorDir = new File("error/");
+    private static final String DEADQUEUE = "deadqueue/";
 
     @Override
     public void start() {
@@ -25,6 +27,7 @@ public class FileErrorManager extends AbstractVerticle {
                                             if (reply.succeeded()) {
                                                 System.out.println(f.delete());
                                             } else {
+                                                FileUtils.moveTo(f, DEADQUEUE);
                                                 System.out.println("Error failure");
                                             }
                                         });

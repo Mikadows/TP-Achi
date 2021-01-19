@@ -1,5 +1,6 @@
 package fr.esgi.archi;
 
+import fr.esgi.archi.util.FileUtils;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.eventbus.Message;
@@ -69,7 +70,7 @@ public class FileManager extends AbstractVerticle {
         if (f.isDirectory()) {
             this.emptyDirectoryInput(f);
         } else {
-            f = this.moveTo(f, this.pendingDir);
+            f = FileUtils.moveTo(f, this.pendingDir);
             if (f != null) {
                 senfFileToWorker(f);
             }
@@ -97,7 +98,7 @@ public class FileManager extends AbstractVerticle {
      */
     private void succesManagement(Message<Object> result) {
         File replyFile = (File) result.body();
-        replyFile = this.moveTo(replyFile, this.outputDir);
+        replyFile = FileUtils.moveTo(replyFile, this.outputDir);
         assert replyFile != null;
         System.out.println("Moved TO " + replyFile.toString());
     }
@@ -109,7 +110,7 @@ public class FileManager extends AbstractVerticle {
     private void errorManagement(Throwable cause) {
         File replyFile = new File(cause.getMessage());
         System.out.println(cause);
-        replyFile = this.moveTo(replyFile, this.errorDir);
+        replyFile = FileUtils.moveTo(replyFile, this.errorDir);
         assert replyFile != null;
         System.out.println("Moved TO " + replyFile.toString());
     }
@@ -134,24 +135,7 @@ public class FileManager extends AbstractVerticle {
         f.delete();
     }
 
-    /**
-     * Move the file in the given folder
-     *
-     * @param from
-     * @param to
-     * @return
-     */
-    private File moveTo(File from, String to) {
-        try {
-            to += from.getName();
-            Files.move(from.toPath(), Paths.get(to), StandardCopyOption.REPLACE_EXISTING);
-            return new File(to);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
 
-    }
 
     /**
      * Get every files in the "input/" folder
