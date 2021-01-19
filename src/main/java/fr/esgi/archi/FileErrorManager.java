@@ -3,17 +3,13 @@ package fr.esgi.archi;
 import fr.esgi.archi.util.FileUtils;
 import io.vertx.core.AbstractVerticle;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Arrays;
-import java.util.List;
 
 
 public class FileErrorManager extends AbstractVerticle {
     private final File errorDir = new File("error/");
     private static final String DEADQUEUE = "deadqueue/";
+    private final String pendingDir = "pending/";
+    private static final String OUTPUT = "output/";
 
     @Override
     public void start() {
@@ -22,13 +18,15 @@ public class FileErrorManager extends AbstractVerticle {
                     File[] files = this.getFiles();
                         for (File f : files) {
                             if (f != null) {
+                                f = FileUtils.moveTo(f, this.pendingDir);
+                                File finalF = f;
                                 vertx.eventBus().request(
                                         "my-channel-error", f, reply -> {
                                             if (reply.succeeded()) {
-                                                System.out.println(f.delete());
+                                                FileUtils.moveTo(finalF, OUTPUT);
                                             } else {
-                                                FileUtils.moveTo(f, DEADQUEUE);
-                                                System.out.println("Error failure");
+                                                FileUtils.moveTo(finalF, DEADQUEUE);
+                                                System.out.println("Failure... move to deadqueue");
                                             }
                                         });
                             }

@@ -20,7 +20,7 @@ public class WorkerError extends AbstractVerticle{
                         e.printStackTrace();
                     }
                     File f = (File) message.body();
-                    System.out.println("Worker error - " + f.toString());
+                    System.out.println("Worker error 1- " + f.toString());
                     String body = "";
                     try {
                         body = readFile(f);
