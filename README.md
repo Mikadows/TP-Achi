@@ -4,7 +4,7 @@ Ce TP a pour but d'implémenter un système de traitement de fichier "distribué
 
 
 ## Auteurs
-Marion Motta\
+Marion Mota\
 Aymeric Larvet\
 Gwendal Siwiorek
 
