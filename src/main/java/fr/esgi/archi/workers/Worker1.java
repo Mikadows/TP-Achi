@@ -4,6 +4,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 /**
  * - Thread.sleep
@@ -23,8 +25,27 @@ public class Worker1 extends AbstractVerticle {
                     }
                     File f = (File) message.body();
                     System.out.println("Worker 1 - " + f.toString());
-
-                    message.reply(f);
+                    String body = "";
+                    try {
+                        body = readFile(f);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                        if(body.equals("")){
+                            message.fail(500, f.getPath());
+                        }else{
+                            message.reply(f);
+                        }
                 });
+    }
+
+    public String readFile(File f) throws FileNotFoundException {
+        Scanner myReader = new Scanner(f);
+        String res = "";
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine();
+            res = res + data;
+        }
+        return res;
     }
 }

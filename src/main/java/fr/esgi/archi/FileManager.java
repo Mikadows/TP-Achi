@@ -1,6 +1,8 @@
 package fr.esgi.archi;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.eventbus.Message;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,14 +17,50 @@ import java.util.Objects;
  * - Distribution des fichiers sur workers génériques
  * - Une fois le fichier traiter l'envoie dans un autre répertoire
  * - Gestion du ACK (du retour du worker)
+ * Traitement par lot des fichiers et si erreur mettre les fichiers dans "error/"
  * extraire dans le directory courant
  */
 public class FileManager extends AbstractVerticle {
     private final File inputDir = new File("input/");
     private final String pendingDir = "pending/";
     private final String outputDir = "output/";
+    private final String errorDir = "error/";
 
-
+    /*
+        @Override
+        public void start() {
+            vertx.setPeriodic(2000,
+                    aLong -> {
+                        this.getFiles();
+                        File[] files = this.getFiles();
+                        for (File f : files) {
+                            if (f.isDirectory()) {
+                                try {
+                                    this.emptyDirectoryInput(f);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                f = this.moveTo(f, this.pendingDir);
+                                if (f != null) {
+                                    vertx.eventBus().request(
+                                            "my-channel", f, reply -> {
+                                                if (reply.succeeded()) {
+                                                    File replyFile = (File) reply.result().body();
+                                                    System.out.println("Moved TO");
+                                                    replyFile = this.moveTo(replyFile, this.outputDir);
+                                                    if (replyFile != null) {
+                                                        System.out.println(replyFile.toString());
+                                                    }
+                                                }
+                                            });
+                                }
+                            }
+                        }
+                    }
+            );
+        }
+        */
     @Override
     public void start() {
         vertx.setPeriodic(2000,
@@ -40,23 +78,27 @@ public class FileManager extends AbstractVerticle {
                             f = this.moveTo(f, this.pendingDir);
                             if (f != null) {
                                 vertx.eventBus().request(
-                                        "my-channel", f, reply -> {
-                                            if (reply.succeeded()) {
-                                                File replyFile = (File) reply.result().body();
-                                                System.out.println("Moved TO");
-                                                replyFile = this.moveTo(replyFile, this.outputDir);
-                                                if (replyFile != null) {
-                                                    System.out.println(replyFile.toString());
-                                                }
-                                            }
-                                        });
+                                "my-channel", f, reply -> {
+                                    if (reply.succeeded()) {
+                                        File replyFile = (File) reply.result().body();
+                                        System.out.println("Moved TO");
+                                        replyFile = this.moveTo(replyFile, this.outputDir);
+                                        assert replyFile != null;
+                                        System.out.println(replyFile.toString());
+                                    }else{
+                                        File replyFile = new File(reply.cause().getMessage());
+                                        System.out.println(reply.cause());
+                                        replyFile = this.moveTo(replyFile, this.errorDir);
+                                        assert replyFile != null;
+                                        System.out.println("Moved TO" + replyFile.toString());
+                                    }
+                                });
                             }
                         }
                     }
                 }
         );
     }
-
     /***
      * Empty a directory receive into the /input directory and delete it afterwards
      * @param f
