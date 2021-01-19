@@ -10,7 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Objects;
+import java.util.*;
+
+import com.google.common.collect.Lists;
+
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,32 +34,48 @@ public class FileManager extends AbstractVerticle {
     public void start() {
         vertx.setPeriodic(2000,
                 aLong -> {
-                    this.getFiles();
-                    File[] files = this.getFiles();
-                    try {
-                        for (File f : files) {
-                            if (f.isDirectory()) {
-                                this.emptyDirectoryInput(f);
+                    //this.getFiles();
 
-                            } else {
-                                f = this.moveTo(f, this.pendingDir);
-                                if (f != null) {
-                                    vertx.eventBus().request(
-                                            "my-channel", f, reply -> {
-                                                if (reply.succeeded()) {
-                                                    succesManagement(reply.result());
-                                                } else {
-                                                    errorManagement(reply.cause());
-                                                }
-                                            });
+                    try {
+                        List<File> files = Arrays.asList(this.getFiles());
+                        if (files.size() > 15) {
+                            int partitioningSize = 2;
+                            List<List<File>> lists
+                                    = Lists.partition(files, partitioningSize);
+                            for (List<File> sublist : lists) {
+                                for (File f : files) {
+                                    if (f.isDirectory()) {
+                                        this.emptyDirectoryInput(f);
+                                    } else {
+                                        f = this.moveTo(f, this.pendingDir);
+                                        if (f != null) {
+                                            vertx.eventBus().request(
+                                                    "my-channel", f, reply -> {
+                                                        if (reply.succeeded()) {
+                                                            succesManagement(reply.result());
+                                                        } else {
+                                                            errorManagement(reply.cause());
+                                                        }
+                                                    });
+                                        }
+                                    }
                                 }
                             }
                         }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
         );
+    }
+
+    private ArrayList<Comparable> subArray(List<File> A, int start, int end) {
+        ArrayList toReturn = new ArrayList();
+        for (int i = start; i <= end; i++) {
+            toReturn.add(A.get(i));
+        }
+        return toReturn;
     }
 
     private void succesManagement(Message<Object> result) {
