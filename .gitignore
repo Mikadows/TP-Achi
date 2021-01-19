@@ -1,6 +1,6 @@
 .idea
 target/
-input/
-output/
-pending/
-error/
+#input/
+#output/
+#pending/
+#error/

@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class FileGenerator {
     private Faker faker = new Faker();
-    
+
     private String generateFileName(int number) {
         String ret = "";
         switch (number) {
