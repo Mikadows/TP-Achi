@@ -26,79 +26,53 @@ public class FileManager extends AbstractVerticle {
     private final String outputDir = "output/";
     private final String errorDir = "error/";
 
-    /*
-        @Override
-        public void start() {
-            vertx.setPeriodic(2000,
-                    aLong -> {
-                        this.getFiles();
-                        File[] files = this.getFiles();
-                        for (File f : files) {
-                            if (f.isDirectory()) {
-                                try {
-                                    this.emptyDirectoryInput(f);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                f = this.moveTo(f, this.pendingDir);
-                                if (f != null) {
-                                    vertx.eventBus().request(
-                                            "my-channel", f, reply -> {
-                                                if (reply.succeeded()) {
-                                                    File replyFile = (File) reply.result().body();
-                                                    System.out.println("Moved TO");
-                                                    replyFile = this.moveTo(replyFile, this.outputDir);
-                                                    if (replyFile != null) {
-                                                        System.out.println(replyFile.toString());
-                                                    }
-                                                }
-                                            });
-                                }
-                            }
-                        }
-                    }
-            );
-        }
-        */
     @Override
     public void start() {
         vertx.setPeriodic(2000,
                 aLong -> {
                     this.getFiles();
                     File[] files = this.getFiles();
-                    for (File f : files) {
-                        if (f.isDirectory()) {
-                            try {
+                    try {
+                        for (File f : files) {
+                            if (f.isDirectory()) {
                                 this.emptyDirectoryInput(f);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            f = this.moveTo(f, this.pendingDir);
-                            if (f != null) {
-                                vertx.eventBus().request(
-                                "my-channel", f, reply -> {
-                                    if (reply.succeeded()) {
-                                        File replyFile = (File) reply.result().body();
-                                        System.out.println("Moved TO");
-                                        replyFile = this.moveTo(replyFile, this.outputDir);
-                                        assert replyFile != null;
-                                        System.out.println(replyFile.toString());
-                                    }else{
-                                        File replyFile = new File(reply.cause().getMessage());
-                                        System.out.println(reply.cause());
-                                        replyFile = this.moveTo(replyFile, this.errorDir);
-                                        assert replyFile != null;
-                                        System.out.println("Moved TO" + replyFile.toString());
-                                    }
-                                });
+
+                            } else {
+                                f = this.moveTo(f, this.pendingDir);
+                                if (f != null) {
+                                    vertx.eventBus().request(
+                                            "my-channel", f, reply -> {
+                                                if (reply.succeeded()) {
+                                                    succesManagement(reply.result());
+                                                } else {
+                                                    errorManagement(reply.cause());
+                                                }
+                                            });
+                                }
                             }
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
         );
     }
+
+    private void succesManagement(Message<Object> result) {
+        File replyFile = (File) result.body();
+        replyFile = this.moveTo(replyFile, this.outputDir);
+        assert replyFile != null;
+        System.out.println("Moved TO " + replyFile.toString());
+    }
+
+    private void errorManagement(Throwable cause) {
+        File replyFile = new File(cause.getMessage());
+        System.out.println(cause);
+        replyFile = this.moveTo(replyFile, this.errorDir);
+        assert replyFile != null;
+        System.out.println("Moved TO " + replyFile.toString());
+    }
+
     /***
      * Empty a directory receive into the /input directory and delete it afterwards
      * @param f
