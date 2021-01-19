@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         final Vertx vertx = Vertx.vertx();
         vertx.eventBus().registerDefaultCodec(File.class, new FileCodec());
-        //vertx.deployVerticle(new FileManager());
+        vertx.deployVerticle(new FileManager());
         vertx.deployVerticle(new FileErrorManager());
         vertx.deployVerticle(new Worker1());
         vertx.deployVerticle(new Worker2());
